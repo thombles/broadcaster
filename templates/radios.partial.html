@@ -1,0 +1,82 @@
+{{if .Radios}}
+{{range .Radios}}
+<table class="radio-status">
+<tr>
+    <td colspan="3" class="outer head">
+    <b>{{.Name}}</b>
+    </td>
+</tr>
+<tr>
+    <td colspan="3" class="outer">
+    <table class="time-table">
+        <tr>
+        <td width="100em">
+        Local Time
+        </td>
+        <td>
+        {{.LocalTime}}
+        </td>
+        </tr>
+        <tr>
+        <td>
+        Time Zone
+        </td>
+        <td>
+        {{.TimeZone}}
+        </td>
+        </tr>
+        <tr>
+        <td>
+        Files In Sync
+        </td>
+        <td>
+        {{if .FilesInSync}} Yes {{else}} No {{end}}
+        </td>
+        </tr>
+    </table>
+    </td>
+</tr>
+<tr>
+    <td class="outer {{.ChannelClass}}">
+    {{.ChannelState}}
+    </td>
+    <td class="outer">
+    <table class="playlist-table">
+        <tr>
+        <td class="playlist-field">
+            Playlist:
+        </td>
+        <td>
+            {{.Playlist}}
+        </td>
+        </tr>
+        <tr>
+        <td class="playlist-field">
+            File:
+        </td>
+        <td>
+            {{.File}}
+        </td>
+        </tr>
+        <tr>
+        <td class="playlist-field">
+            Status:
+        </td>
+        <td>
+            {{.Status}}
+        </td>
+        </tr>
+    </table>
+    </td>
+    <td class="outer stop">
+    <form action="/stop" method="post">
+        <input type="hidden" name="radioId" value="{{.Id}}">
+        <input type="submit" value="Cancel Playback" {{if .DisableCancel}} disabled {{end}}>
+    </form>
+    </td>
+</tr>
+</table>
+{{end}}
+{{else}}
+<p><i>There are no radios online.</i></p>
+{{end}}

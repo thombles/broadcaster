@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcaster</title>
+    <script type="text/javascript">
+    function deleteItem(sender) {
+      sender.parentNode.remove();
+    }
+    function addItem() {
+      const p = document.createElement('p');
+      const temp = document.getElementById('item-template');
+      p.innerHTML = temp.innerHTML;
+      const marker = document.getElementById('add-item');
+      const parent = marker.parentNode;
+      parent.insertBefore(p, marker);
+    }
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>A specific playlist</h1>
+      <h2>
+      {{if .Playlist.Id}}
+      Edit Playlist
+      {{else}}
+      Create New Playlist
+      {{end}}
+      </h2>
+      <form action="/playlist/submit" method="POST">
+        <input type="hidden" name="playlistId" value="{{.Playlist.Id}}">
+        <p>
+        <input type="checkbox" id="playlistEnabled" name="playlistEnabled" value="1" {{if .Playlist.Enabled}} checked {{end}}>
+        <label for="playlistEnabled">Playlist enabled?</label><br>
+        </p>
+        <p>
+        <label for="playlistName">Name:</label>
+        <input type="text" id="playlistName" name="playlistName" value="{{.Playlist.Name}}">
+        </p>
+        <p>
+        <label for="playlistStartTime">Transmission Start:</label>
+        <input type="datetime-local" id="playlistStartTime" name="playlistStartTime" value="{{.Playlist.StartTime}}">
+        </p>
+        <h3>Playlist Items</h3>
+        {{range .Entries}}
+        <p>
+        Wait until
+        <input type="text" name="delaySeconds" value="{{.DelaySeconds}}">
+        seconds from
+        <select name="isRelative">
+          <option value="0">start of transmission</option>
+          <option value="1" {{if .IsRelative}} selected="selected" {{end}}>previous item</option>
+        </select>
+        then play
+        <select name="filename">{{$f := .Filename}}
+          <option value="">(no file selected)</option>
+          {{range $.Files}}
+          <option value="{{.}}" {{if eq . $f }} selected="selected" {{end}}>{{.}}</option>
+          {{end}}
+        </select>
+        <a href="#" onclick="deleteItem(this)">(Delete Item)</a>
+        </p>
+        {{end}}
+        <p>
+        <a href="#" onclick="addItem()" id="add-item">Add Item</a>
+        </p>
+        <p>
+        <input type="submit" value="Save Playlist">
+        </p>
+      </form>
+      {{if .Playlist.Id}}
+      <h3>Delete</h3>
+      <form action="/playlist/delete" method="POST">
+        <input type="hidden" name="playlistId" value="{{.Playlist.Id}}">
+        <p>
+        <input type="submit" value="Delete Playlist">
+        </p>
+      </form>
+      {{end}}
+      <template id="item-template">
+        Wait until
+        <input type="text" name="delaySeconds" value="0">
+        seconds from
+        <select name="isRelative">
+          <option value="0">start of transmission</option>
+          <option value="1">previous item</option>
+        </select>
+        then play
+        <select name="filename">
+          <option value="">(no file selected)</option>
+          {{range $.Files}}
+          <option value="{{.}}">{{.}}</option>
+          {{end}}
+        </select>
+        <a href="#" onclick="deleteItem(this)">(Delete Item)</a>
+      </template>
+    </main>
+  </body>
+</html>

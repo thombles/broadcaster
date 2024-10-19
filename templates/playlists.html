@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcaster</title>
+  </head>
+  <body>
+    <main>
+      <h1>Playlists!</h1>
+      <ul>
+      {{range .Playlists}}
+        <li><b>{{.Name}}</b> {{.StartTime}} <a href="/playlist/{{.Id}}">(Edit)</a></li>
+      {{end}}
+      </ul>
+      <p><a href="/playlist/new">Add New Playlist</a></p>
+    </main>
+  </body>
+</html>

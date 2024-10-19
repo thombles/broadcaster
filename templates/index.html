@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcaster</title>
+    <style type="text/css">
+      table.radio-status, td.outer {
+        border: 1px solid;
+      }
+      table.inner {
+        border-collapse: collapse;
+      }
+      td.clear {
+        width: 5em;
+        height: 5em;
+        text-align: center;
+      }
+      .time-table {
+        font-size: 90%;
+      }
+      .playlist-field {
+        text-align: right;
+        padding-right: 1em;
+        width: 5em;
+      }
+      .playlist-table {
+        font-size: 90%;
+        width: 30em;
+      }
+      .stop {
+        text-align: center;
+      }
+      .head {
+        text-align: center;
+      }
+    </style>
+    <script type="text/javascript">
+      function connectWebsocket() {
+        console.log("Attempting to create websocket connection for radio status sync")
+        const cookieValue = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("broadcast_session="))
+          ?.split("=")[1];
+        const socket = new WebSocket("/websync");
+        socket.addEventListener("open", (event) => {
+          socket.send(cookieValue);
+        });
+        socket.addEventListener("message", (event) => {
+          console.log("Received a status update from server")
+          const connected = document.getElementById('connected-radios');
+          connected.innerHTML = event.data;
+        });
+        socket.addEventListener("close", (event) => {
+          console.log("Websocket closed. Will retry in 10 seconds.")
+          setTimeout(connectWebsocket, 10000);
+        });
+      }
+      // initial connection on page load
+      connectWebsocket();
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>Welcome!</h1>
+      {{if .LoggedIn}}
+      <p>Your username is: {{.Username}}.</p>
+      <p><a href="/logout">Log Out</a></p>
+      {{else}}
+      <p><a href="/login">Log In</a></p>
+      {{end}}
+      <p><a href="/file/">File Management</a></p>
+      <p><a href="/playlist/">Playlist Management</a></p>
+      <p><a href="/radio/">Radio Management</a></p>
+      <h2>Connected Radios</h2>
+      <div id="connected-radios">
+        <i>Loading...</i>
+      </div>
+    </main>
+  </body>
+</html>

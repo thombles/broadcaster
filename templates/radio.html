@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcaster</title>
+  </head>
+  <body>
+    <main>
+      <h1>A specific radio</h1>
+      <h2>
+      {{if .Radio.Id}}
+      Edit Radio
+      {{else}}
+      Register New Radio
+      {{end}}
+      </h2>
+      <form action="/radio/submit" method="POST">
+        <input type="hidden" name="radioId" value="{{.Radio.Id}}">
+        <p>
+        <label for="radioName">Name:</label>
+        <input type="text" id="radioName" name="radioName" value="{{.Radio.Name}}">
+        </p>
+        <p>
+        Authentication token: <b>{{.Radio.Token}}</b>
+        <input type="hidden" name="radioToken" value="{{.Radio.Token}}">
+        </p>
+        <p>
+        <input type="submit" value="Save Radio">
+        </p>
+      </form>
+      {{if .Radio.Id}}
+      <h3>Delete</h3>
+      <form action="/radio/delete" method="POST">
+        <input type="hidden" name="radioId" value="{{.Radio.Id}}">
+        <p>
+        <input type="submit" value="Delete Radio">
+        </p>
+      </form>
+      {{end}}
+    </main>
+  </body>
+</html>
