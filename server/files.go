@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type FileSpec struct {
@@ -18,6 +19,7 @@ type AudioFiles struct {
 	path       string
 	list       []FileSpec
 	changeWait chan bool
+	filesMutex sync.Mutex
 }
 
 var files AudioFiles
@@ -36,6 +38,8 @@ func (r *AudioFiles) Refresh() {
 		log.Println("couldn't read dir", r.path)
 		return
 	}
+	r.filesMutex.Lock()
+	defer r.filesMutex.Unlock()
 	r.list = nil
 	for _, file := range entries {
 		f, err := os.Open(filepath.Join(r.path, file.Name()))
@@ -57,6 +61,8 @@ func (r *AudioFiles) Path() string {
 }
 
 func (r *AudioFiles) Files() []FileSpec {
+	r.filesMutex.Lock()
+	defer r.filesMutex.Unlock()
 	return r.list
 }
 
@@ -68,6 +74,8 @@ func (r *AudioFiles) Delete(filename string) {
 	}
 }
 
-func (r *AudioFiles) ChangeChannel() chan bool {
-	return r.changeWait
+func (r *AudioFiles) WatchForChanges() ([]FileSpec, chan bool) {
+	r.filesMutex.Lock()
+	defer r.filesMutex.Unlock()
+	return r.list, r.changeWait
 }

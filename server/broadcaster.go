@@ -18,9 +18,6 @@ const formatString = "2006-01-02T15:04"
 
 var config ServerConfig = NewServerConfig()
 
-// Channel that will be closed and recreated every time the playlists change
-var playlistChangeWait = make(chan bool)
-
 func main() {
 	configFlag := flag.String("c", "", "path to configuration file")
 	// TODO: support this
@@ -36,6 +33,7 @@ func main() {
 	InitDatabase()
 	defer db.CloseDatabase()
 
+	InitPlaylists()
 	InitAudioFiles(config.AudioFilesPath)
 	InitServerStatus()
 
@@ -288,8 +286,7 @@ func submitPlaylist(w http.ResponseWriter, r *http.Request) {
 		}
 		db.SetEntriesForPlaylist(cleanedEntries, id)
 		// Notify connected radios
-		close(playlistChangeWait)
-		playlistChangeWait = make(chan bool)
+		playlists.NotifyChanges()
 	}
 	http.Redirect(w, r, "/playlist/", http.StatusFound)
 }
@@ -302,6 +299,7 @@ func deletePlaylist(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		db.DeletePlaylist(id)
+		playlists.NotifyChanges()
 	}
 	http.Redirect(w, r, "/playlist/", http.StatusFound)
 }

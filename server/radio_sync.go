@@ -55,20 +55,7 @@ func RadioSync(ws *websocket.Conn) {
 			isAuthenticated = true
 
 			go KeepFilesUpdated(ws)
-
-			// send initial file message
-			err = sendFilesMessageToRadio(ws)
-			if err != nil {
-				return
-			}
-
 			go KeepPlaylistsUpdated(ws)
-
-			// send initial playlists message
-			err = sendPlaylistsMessageToRadio(ws)
-			if err != nil {
-				return
-			}
 		}
 
 		if t == protocol.StatusType {
@@ -79,9 +66,9 @@ func RadioSync(ws *websocket.Conn) {
 	}
 }
 
-func sendPlaylistsMessageToRadio(ws *websocket.Conn) error {
+func sendPlaylistsMessageToRadio(ws *websocket.Conn, p []Playlist) error {
 	playlistSpecs := make([]protocol.PlaylistSpec, 0)
-	for _, v := range db.GetPlaylists() {
+	for _, v := range p {
 		if v.Enabled {
 			entrySpecs := make([]protocol.EntrySpec, 0)
 			for _, e := range db.GetEntriesForPlaylist(v.Id) {
@@ -101,17 +88,18 @@ func sendPlaylistsMessageToRadio(ws *websocket.Conn) error {
 
 func KeepPlaylistsUpdated(ws *websocket.Conn) {
 	for {
-		<-playlistChangeWait
-		err := sendPlaylistsMessageToRadio(ws)
+		p, ch := playlists.WatchForChanges()
+		err := sendPlaylistsMessageToRadio(ws, p)
 		if err != nil {
 			return
 		}
+		<-ch
 	}
 }
 
-func sendFilesMessageToRadio(ws *websocket.Conn) error {
+func sendFilesMessageToRadio(ws *websocket.Conn, f []FileSpec) error {
 	specs := make([]protocol.FileSpec, 0)
-	for _, v := range files.Files() {
+	for _, v := range f {
 		specs = append(specs, protocol.FileSpec{Name: v.Name, Hash: v.Hash})
 	}
 	files := protocol.FilesMessage{
@@ -125,10 +113,11 @@ func sendFilesMessageToRadio(ws *websocket.Conn) error {
 
 func KeepFilesUpdated(ws *websocket.Conn) {
 	for {
-		<-files.ChangeChannel()
-		err := sendFilesMessageToRadio(ws)
+		f, ch := files.WatchForChanges()
+		err := sendFilesMessageToRadio(ws, f)
 		if err != nil {
 			return
 		}
+		<-ch
 	}
 }
