@@ -21,10 +21,19 @@ func InitDatabase() {
 	}
 	db.sqldb = sqldb
 
+	_, err = db.sqldb.Exec("PRAGMA journal_mode = WAL")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	_, err = db.sqldb.Exec("PRAGMA foreign_keys = ON")
 	if err != nil {
-		log.Printf("%q\n", err)
-		return
+		log.Fatal(err)
+	}
+
+	_, err = db.sqldb.Exec("PRAGMA busy_timeout = 5000")
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	sqlStmt := `

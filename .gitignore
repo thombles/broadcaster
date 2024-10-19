@@ -3,4 +3,4 @@ broadcaster-server
 broadcaster-radio
 test-server.conf
 test-radio.conf
-test.db
+test.db*
