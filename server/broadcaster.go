@@ -33,6 +33,7 @@ func main() {
 	InitDatabase()
 	defer db.CloseDatabase()
 
+	InitCommandRouter()
 	InitPlaylists()
 	InitAudioFiles(config.AudioFilesPath)
 	InitServerStatus()
@@ -41,6 +42,7 @@ func main() {
 	http.HandleFunc("/login", logInPage)
 	http.HandleFunc("/logout", logOutPage)
 	http.HandleFunc("/secret", secretPage)
+	http.HandleFunc("/stop", stopPage)
 
 	http.HandleFunc("/playlist/", playlistSection)
 	http.HandleFunc("/file/", fileSection)
@@ -403,4 +405,20 @@ func logOutPage(w http.ResponseWriter, r *http.Request) {
 	clearSessionCookie(w)
 	tmpl := template.Must(template.ParseFiles("templates/logout.html"))
 	tmpl.Execute(w, nil)
+}
+
+func stopPage(w http.ResponseWriter, r *http.Request) {
+	_, err := currentUser(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	r.ParseForm()
+	radioId, err := strconv.Atoi(r.Form.Get("radioId"))
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	commandRouter.Stop(radioId)
+	http.Redirect(w, r, "/", http.StatusFound)
 }

@@ -19,6 +19,7 @@ const (
 
 	FilesType     = "files"
 	PlaylistsType = "playlists"
+	StopType      = "stop"
 
 	// Status values
 
@@ -50,6 +51,11 @@ type FilesMessage struct {
 type PlaylistsMessage struct {
 	T         string
 	Playlists []PlaylistSpec
+}
+
+// Any playlist currently being played should be stopped and PTT disengaged.
+type StopMessage struct {
+	T string
 }
 
 type StatusMessage struct {
@@ -146,6 +152,15 @@ func ParseMessage(data []byte) (string, interface{}, error) {
 			return "", nil, err
 		}
 		return t.T, status, nil
+	}
+
+	if t.T == StopType {
+		var stop StopMessage
+		err = json.Unmarshal(data, &stop)
+		if err != nil {
+			return "", nil, err
+		}
+		return t.T, stop, nil
 	}
 
 	return "", nil, errors.New(fmt.Sprintf("unknown message type %v", t.T))

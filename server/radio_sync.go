@@ -53,6 +53,8 @@ func RadioSync(ws *websocket.Conn) {
 			radio = r
 			log.Println("Radio authenticated:", radio.Name)
 			isAuthenticated = true
+			commandRouter.AddWebsocket(r.Id, ws)
+			defer commandRouter.RemoveWebsocket(ws)
 
 			go KeepFilesUpdated(ws)
 			go KeepPlaylistsUpdated(ws)
