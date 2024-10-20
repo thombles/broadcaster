@@ -49,8 +49,8 @@
         <input type="text" name="delaySeconds" value="{{.DelaySeconds}}">
         seconds from
         <select name="isRelative">
-          <option value="0">start of transmission</option>
-          <option value="1" {{if .IsRelative}} selected="selected" {{end}}>previous item</option>
+          <option value="1">previous item</option>
+          <option value="0" {{if not .IsRelative}} selected="selected" {{end}}>start of transmission</option>
         </select>
         then play
         <select name="filename">{{$f := .Filename}}
@@ -83,8 +83,8 @@
         <input type="text" name="delaySeconds" value="0">
         seconds from
         <select name="isRelative">
-          <option value="0">start of transmission</option>
           <option value="1">previous item</option>
+          <option value="0">start of transmission</option>
         </select>
         then play
         <select name="filename">
