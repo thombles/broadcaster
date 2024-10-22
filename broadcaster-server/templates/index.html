@@ -42,7 +42,7 @@
           .split("; ")
           .find((row) => row.startsWith("broadcast_session="))
           ?.split("=")[1];
-        const socket = new WebSocket("/websync");
+        const socket = new WebSocket("/web-ws");
         socket.addEventListener("open", (event) => {
           socket.send(cookieValue);
         });
@@ -69,9 +69,9 @@
       {{else}}
       <p><a href="/login">Log In</a></p>
       {{end}}
-      <p><a href="/file/">File Management</a></p>
-      <p><a href="/playlist/">Playlist Management</a></p>
-      <p><a href="/radio/">Radio Management</a></p>
+      <p><a href="/files/">File Management</a></p>
+      <p><a href="/playlists/">Playlist Management</a></p>
+      <p><a href="/radios/">Radio Management</a></p>
       <h2>Connected Radios</h2>
       <div id="connected-radios">
         <i>Loading...</i>

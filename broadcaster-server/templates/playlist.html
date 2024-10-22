@@ -28,7 +28,7 @@
       Create New Playlist
       {{end}}
       </h2>
-      <form action="/playlist/submit" method="POST">
+      <form action="/playlists/submit" method="POST">
         <input type="hidden" name="playlistId" value="{{.Playlist.Id}}">
         <p>
         <input type="checkbox" id="playlistEnabled" name="playlistEnabled" value="1" {{if .Playlist.Enabled}} checked {{end}}>
@@ -71,7 +71,7 @@
       </form>
       {{if .Playlist.Id}}
       <h3>Delete</h3>
-      <form action="/playlist/delete" method="POST">
+      <form action="/playlists/delete" method="POST">
         <input type="hidden" name="playlistId" value="{{.Playlist.Id}}">
         <p>
         <input type="submit" value="Delete Playlist">

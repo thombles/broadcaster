@@ -8,6 +8,7 @@ require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/gopxl/beep/v2 v2.1.0
 	github.com/warthog618/go-gpiocdev v0.9.0
+	golang.org/x/crypto v0.28.0
 	golang.org/x/net v0.30.0
 	modernc.org/sqlite v1.33.1
 )

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"code.octet-stream.net/broadcaster/protocol"
+	"code.octet-stream.net/broadcaster/internal/protocol"
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
@@ -106,7 +106,7 @@ func (m *FilesMachine) DownloadSingle(filename string, downloadResult chan<- err
 		return
 	}
 	defer out.Close()
-	resp, err := http.Get(config.ServerURL + "/audio-files/" + filename)
+	resp, err := http.Get(config.ServerURL + "/file-downloads/" + filename)
 	if err != nil {
 		downloadResult <- err
 		return

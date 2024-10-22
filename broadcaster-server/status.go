@@ -1,7 +1,7 @@
 package main
 
 import (
-	"code.octet-stream.net/broadcaster/protocol"
+	"code.octet-stream.net/broadcaster/internal/protocol"
 	"sync"
 )
 

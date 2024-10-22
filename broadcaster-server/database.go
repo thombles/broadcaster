@@ -41,6 +41,7 @@ func InitDatabase() {
 	CREATE TABLE IF NOT EXISTS playlists (id INTEGER PRIMARY KEY AUTOINCREMENT, enabled INTEGER, name TEXT, start_time TEXT);
 	CREATE TABLE IF NOT EXISTS playlist_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, playlist_id INTEGER, position INTEGER, filename TEXT, delay_seconds INTEGER, is_relative INTEGER, CONSTRAINT fk_playlists FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE);
 	CREATE TABLE IF NOT EXISTS radios (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, token TEXT);
+	CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password_hash TEXT, is_admin INTEGER);
 	`
 	_, err = db.sqldb.Exec(sqlStmt)
 	if err != nil {
@@ -60,13 +61,61 @@ func (d *Database) InsertSession(user string, token string, expiry time.Time) {
 	}
 }
 
-func (d *Database) GetUserForSession(token string) (string, error) {
+func (d *Database) GetUserNameForSession(token string) (string, error) {
 	var username string
 	err := d.sqldb.QueryRow("SELECT username FROM sessions WHERE token = ? AND expiry > CURRENT_TIMESTAMP", token).Scan(&username)
 	if err != nil {
 		return "", errors.New("no matching token")
 	}
 	return username, nil
+}
+
+func (d *Database) GetUser(username string) (User, error) {
+	var user User
+	err := d.sqldb.QueryRow("SELECT id, username, password_hash, is_admin FROM users WHERE username = ?", username).Scan(&user.Id, &user.Username, &user.PasswordHash, &user.IsAdmin)
+	if err != nil {
+		return User{}, errors.New("no user with that username")
+	}
+	return user, nil
+}
+
+func (d *Database) GetUsers() []User {
+	ret := make([]User, 0)
+	rows, err := d.sqldb.Query("SELECT id, username, password_hash, is_admin FROM users ORDER BY username ASC")
+	if err != nil {
+		return ret
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var u User
+		if err := rows.Scan(&u.Id, &u.Username, &u.PasswordHash, &u.IsAdmin); err != nil {
+			return ret
+		}
+		ret = append(ret, u)
+	}
+	return ret
+}
+
+func (d *Database) SetUserPassword(username string, passwordHash string) {
+	d.sqldb.Exec("UPDATE users SET password_hash = ? WHERE username = ?", passwordHash, username)
+}
+
+func (d *Database) ClearOtherSessions(username string, token string) {
+	d.sqldb.Exec("DELETE FROM sessions WHERE username = ? AND token != ?", username, token)
+}
+
+func (d *Database) SetUserIsAdmin(username string, isAdmin bool) {
+	d.sqldb.Exec("UPDATE users SET is_admin = ? WHERE username = ?", isAdmin, username)
+}
+
+func (d *Database) CreateUser(user User) error {
+	_, err := d.sqldb.Exec("INSERT INTO users (username, password_hash, is_admin) values (?, ?, ?)", user.Username, user.PasswordHash, user.IsAdmin)
+	return err
+}
+
+func (d *Database) DeleteUser(username string) error {
+	_, err := d.sqldb.Exec("DELETE FROM users WHERE username = ?", username)
+	return err
 }
 
 func (d *Database) CreatePlaylist(playlist Playlist) int {

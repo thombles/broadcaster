@@ -1,9 +1,10 @@
 package main
 
 import (
-	"code.octet-stream.net/broadcaster/protocol"
+	"code.octet-stream.net/broadcaster/internal/protocol"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"github.com/gopxl/beep/v2"
 	"github.com/gopxl/beep/v2/mp3"
 	"github.com/gopxl/beep/v2/speaker"
@@ -18,19 +19,25 @@ import (
 	"time"
 )
 
+const version = "v1.0.0"
 const sampleRate = 44100
 
 var config RadioConfig = NewRadioConfig()
 
 func main() {
 	configFlag := flag.String("c", "", "path to configuration file")
-	// TODO: support this
-	//generateFlag := flag.String("g", "", "create a template config file with specified name then exit")
+	versionFlag := flag.Bool("v", false, "print version and exit")
 	flag.Parse()
 
+	if *versionFlag {
+		fmt.Println("Broadcaster Radio", version)
+		os.Exit(0)
+	}
 	if *configFlag == "" {
 		log.Fatal("must specify a configuration file with -c")
 	}
+
+	log.Println("Broadcaster Radio", version, "starting up")
 	config.LoadFromFile(*configFlag)
 	statusCollector.Config <- config
 

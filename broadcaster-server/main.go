@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"embed"
 	"flag"
+	"fmt"
 	"golang.org/x/net/websocket"
 	"html/template"
 	"io"
@@ -14,43 +17,80 @@ import (
 	"time"
 )
 
+const version = "v1.0.0"
 const formatString = "2006-01-02T15:04"
+
+//go:embed templates/*
+var content embed.FS
 
 var config ServerConfig = NewServerConfig()
 
 func main() {
 	configFlag := flag.String("c", "", "path to configuration file")
-	// TODO: support this
-	//generateFlag := flag.String("g", "", "create a template config file with specified name then exit")
+	addUserFlag := flag.Bool("a", false, "interactively add an admin user then exit")
+	versionFlag := flag.Bool("v", false, "print version then exit")
 	flag.Parse()
 
+	if *versionFlag {
+		fmt.Println("Broadcaster Server", version)
+		os.Exit(0)
+	}
 	if *configFlag == "" {
 		log.Fatal("must specify a configuration file with -c")
 	}
 	config.LoadFromFile(*configFlag)
 
-	log.Println("Hello, World! Woo broadcast time")
 	InitDatabase()
 	defer db.CloseDatabase()
 
+	if *addUserFlag {
+		scanner := bufio.NewScanner(os.Stdin)
+		fmt.Println("Enter new admin username:")
+		if !scanner.Scan() {
+			os.Exit(1)
+		}
+		username := scanner.Text()
+		fmt.Println("Enter new admin password (will be printed in the clear):")
+		if !scanner.Scan() {
+			os.Exit(1)
+		}
+		password := scanner.Text()
+		if username == "" || password == "" {
+			fmt.Println("Both username and password must be specified")
+			os.Exit(1)
+		}
+		if err := users.CreateUser(username, password, true); err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}
+
+	log.Println("Broadcaster Server", version, "starting up")
 	InitCommandRouter()
 	InitPlaylists()
 	InitAudioFiles(config.AudioFilesPath)
 	InitServerStatus()
 
-	http.HandleFunc("/", homePage)
+	// Public routes
+
 	http.HandleFunc("/login", logInPage)
+	http.Handle("/file-downloads/", http.StripPrefix("/file-downloads/", http.FileServer(http.Dir(config.AudioFilesPath))))
+
+	// Authenticated routes
+
+	http.HandleFunc("/", homePage)
 	http.HandleFunc("/logout", logOutPage)
-	http.HandleFunc("/secret", secretPage)
+	http.HandleFunc("/change-password", changePasswordPage)
+
+	http.HandleFunc("/playlists/", playlistSection)
+	http.HandleFunc("/files/", fileSection)
+	http.HandleFunc("/radios/", radioSection)
+
+	http.Handle("/radio-ws", websocket.Handler(RadioSync))
+	http.Handle("/web-ws", websocket.Handler(WebSync))
 	http.HandleFunc("/stop", stopPage)
 
-	http.HandleFunc("/playlist/", playlistSection)
-	http.HandleFunc("/file/", fileSection)
-	http.HandleFunc("/radio/", radioSection)
-
-	http.Handle("/radiosync", websocket.Handler(RadioSync))
-	http.Handle("/websync", websocket.Handler(WebSync))
-	http.Handle("/audio-files/", http.StripPrefix("/audio-files/", http.FileServer(http.Dir(config.AudioFilesPath))))
+	// Admin routes
 
 	err := http.ListenAndServe(config.BindAddress+":"+strconv.Itoa(config.Port), nil)
 	if err != nil {
@@ -64,24 +104,10 @@ type HomeData struct {
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/index.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/index.html"))
 	data := HomeData{
 		LoggedIn: true,
 		Username: "Bob",
-	}
-	tmpl.Execute(w, data)
-}
-
-func secretPage(w http.ResponseWriter, r *http.Request) {
-	user, err := currentUser(w, r)
-	if err != nil {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	tmpl := template.Must(template.ParseFiles("templates/index.html"))
-	data := HomeData{
-		LoggedIn: true,
-		Username: user.username + ", you are special",
 	}
 	tmpl.Execute(w, data)
 }
@@ -95,23 +121,23 @@ func logInPage(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	username := r.Form["username"]
 	password := r.Form["password"]
-	err := ""
+	errText := ""
 	if username != nil {
-		log.Println("Looks like we have a username", username[0])
-		if username[0] == "admin" && password[0] == "test" {
-			createSessionCookie(w)
+		user, err := users.Authenticate(username[0], password[0])
+		if err != nil {
+			errText = "Incorrect login"
+		} else {
+			createSessionCookie(w, user.Username)
 			http.Redirect(w, r, "/", http.StatusFound)
 			return
-		} else {
-			err = "Incorrect login"
 		}
 	}
 
 	data := LogInData{
-		Error: err,
+		Error: errText,
 	}
 
-	tmpl := template.Must(template.ParseFiles("templates/login.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/login.html"))
 	tmpl.Execute(w, data)
 }
 
@@ -181,6 +207,50 @@ func radioSection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type ChangePasswordPageData struct {
+	Message  string
+	ShowForm bool
+}
+
+func changePasswordPage(w http.ResponseWriter, r *http.Request) {
+	user, err := currentUser(w, r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusFound)
+		return
+	}
+	var data ChangePasswordPageData
+	if r.Method == "POST" {
+		err := r.ParseForm()
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		oldPassword := r.Form.Get("oldPassword")
+		newPassword := r.Form.Get("newPassword")
+		err = users.UpdatePassword(user.Username, oldPassword, newPassword)
+		if err != nil {
+			data.Message = "Failed to change password: " + err.Error()
+			data.ShowForm = true
+		} else {
+			data.Message = "Successfully changed password"
+			data.ShowForm = false
+			cookie, err := r.Cookie("broadcast_session")
+			if err == nil {
+				log.Println("clearing other sessions for username", user.Username, "token", cookie.Value)
+				db.ClearOtherSessions(user.Username, cookie.Value)
+			}
+		}
+	} else {
+		data.Message = ""
+		data.ShowForm = true
+	}
+	tmpl := template.Must(template.ParseFS(content, "templates/change_password.html"))
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 type PlaylistsPageData struct {
 	Playlists []Playlist
 }
@@ -189,7 +259,7 @@ func playlistsPage(w http.ResponseWriter, _ *http.Request) {
 	data := PlaylistsPageData{
 		Playlists: db.GetPlaylists(),
 	}
-	tmpl := template.Must(template.ParseFiles("templates/playlists.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/playlists.html"))
 	err := tmpl.Execute(w, data)
 	if err != nil {
 		log.Fatal(err)
@@ -204,7 +274,7 @@ func radiosPage(w http.ResponseWriter, _ *http.Request) {
 	data := RadiosPageData{
 		Radios: db.GetRadios(),
 	}
-	tmpl := template.Must(template.ParseFiles("templates/radios.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/radios.html"))
 	err := tmpl.Execute(w, data)
 	if err != nil {
 		log.Fatal(err)
@@ -236,7 +306,7 @@ func editPlaylistPage(w http.ResponseWriter, r *http.Request, id int) {
 		data.Playlist = playlist
 		data.Entries = db.GetEntriesForPlaylist(id)
 	}
-	tmpl := template.Must(template.ParseFiles("templates/playlist.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/playlist.html"))
 	tmpl.Execute(w, data)
 }
 
@@ -290,7 +360,7 @@ func submitPlaylist(w http.ResponseWriter, r *http.Request) {
 		// Notify connected radios
 		playlists.NotifyChanges()
 	}
-	http.Redirect(w, r, "/playlist/", http.StatusFound)
+	http.Redirect(w, r, "/playlists/", http.StatusFound)
 }
 
 func deletePlaylist(w http.ResponseWriter, r *http.Request) {
@@ -303,7 +373,7 @@ func deletePlaylist(w http.ResponseWriter, r *http.Request) {
 		db.DeletePlaylist(id)
 		playlists.NotifyChanges()
 	}
-	http.Redirect(w, r, "/playlist/", http.StatusFound)
+	http.Redirect(w, r, "/playlists/", http.StatusFound)
 }
 
 type EditRadioPageData struct {
@@ -323,7 +393,7 @@ func editRadioPage(w http.ResponseWriter, r *http.Request, id int) {
 		}
 		data.Radio = radio
 	}
-	tmpl := template.Must(template.ParseFiles("templates/radio.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/radio.html"))
 	tmpl.Execute(w, data)
 }
 
@@ -344,7 +414,7 @@ func submitRadio(w http.ResponseWriter, r *http.Request) {
 			db.CreateRadio(radio)
 		}
 	}
-	http.Redirect(w, r, "/radio/", http.StatusFound)
+	http.Redirect(w, r, "/radios/", http.StatusFound)
 }
 
 func deleteRadio(w http.ResponseWriter, r *http.Request) {
@@ -356,7 +426,7 @@ func deleteRadio(w http.ResponseWriter, r *http.Request) {
 		}
 		db.DeleteRadio(id)
 	}
-	http.Redirect(w, r, "/radio/", http.StatusFound)
+	http.Redirect(w, r, "/radios/", http.StatusFound)
 }
 
 type FilesPageData struct {
@@ -368,7 +438,7 @@ func filesPage(w http.ResponseWriter, _ *http.Request) {
 		Files: files.Files(),
 	}
 	log.Println("file page data", data)
-	tmpl := template.Must(template.ParseFiles("templates/files.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/files.html"))
 	err := tmpl.Execute(w, data)
 	if err != nil {
 		log.Fatal(err)
@@ -384,7 +454,7 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 		}
 		files.Delete(filename)
 	}
-	http.Redirect(w, r, "/file/", http.StatusFound)
+	http.Redirect(w, r, "/files/", http.StatusFound)
 }
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
@@ -398,12 +468,12 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		log.Println("uploaded file to", path)
 		files.Refresh()
 	}
-	http.Redirect(w, r, "/file/", http.StatusFound)
+	http.Redirect(w, r, "/files/", http.StatusFound)
 }
 
 func logOutPage(w http.ResponseWriter, r *http.Request) {
 	clearSessionCookie(w)
-	tmpl := template.Must(template.ParseFiles("templates/logout.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/logout.html"))
 	tmpl.Execute(w, nil)
 }
 

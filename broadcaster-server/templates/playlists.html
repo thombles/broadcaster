@@ -10,10 +10,10 @@
       <h1>Playlists!</h1>
       <ul>
       {{range .Playlists}}
-        <li><b>{{.Name}}</b> {{.StartTime}} <a href="/playlist/{{.Id}}">(Edit)</a></li>
+        <li><b>{{.Name}}</b> {{.StartTime}} <a href="/playlists/{{.Id}}">(Edit)</a></li>
       {{end}}
       </ul>
-      <p><a href="/playlist/new">Add New Playlist</a></p>
+      <p><a href="/playlists/new">Add New Playlist</a></p>
     </main>
   </body>
 </html>

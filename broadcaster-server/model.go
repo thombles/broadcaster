@@ -9,7 +9,10 @@ type PlaylistEntry struct {
 }
 
 type User struct {
-	username string
+	Id           int
+	Username     string
+	PasswordHash string
+	IsAdmin      bool
 }
 
 type Playlist struct {

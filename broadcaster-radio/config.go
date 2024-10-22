@@ -66,5 +66,5 @@ func (c *RadioConfig) ApplyDefaults() {
 func (c *RadioConfig) WebsocketURL() string {
 	addr := strings.Replace(c.ServerURL, "https://", "wss://", -1)
 	addr = strings.Replace(addr, "http://", "ws://", -1)
-	return addr + "/radiosync"
+	return addr + "/radio-ws"
 }

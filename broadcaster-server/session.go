@@ -17,26 +17,21 @@ func generateSession() string {
 	return hex.EncodeToString(b)
 }
 
-func currentUser(w http.ResponseWriter, r *http.Request) (User, error) {
-	// todo: check if user actually exists and is allowed to log in
+func currentUser(_ http.ResponseWriter, r *http.Request) (User, error) {
 	cookie, e := r.Cookie("broadcast_session")
 	if e != nil {
 		return User{}, e
 	}
 
-	username, e := db.GetUserForSession(cookie.Value)
-	if e != nil {
-		return User{}, e
-	}
-	return User{username: username}, nil
+	return users.GetUserForSession(cookie.Value)
 }
 
-func createSessionCookie(w http.ResponseWriter) {
+func createSessionCookie(w http.ResponseWriter, username string) {
 	sess := generateSession()
 	log.Println("Generated a random session", sess)
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := http.Cookie{Name: "broadcast_session", Value: sess, Expires: expiration, SameSite: http.SameSiteLaxMode}
-	db.InsertSession("admin", sess, expiration)
+	db.InsertSession(username, sess, expiration)
 	http.SetCookie(w, &cookie)
 }
 

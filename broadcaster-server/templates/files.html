@@ -8,14 +8,15 @@
   <body>
     <main>
       <h1>Files! List</h1>
+      <p>All files can be downloaded from the <a href="/file-downloads/">public file listing</a>.</p>
       <ul>
       {{range .Files}}
-        <li><b>{{.Name}}</b><form action="/file/delete" method="POST"><input type="hidden" name="filename" value="{{.Name}}"><input type="submit" value="Delete"></form></li>
+        <li><b>{{.Name}}</b><form action="/files/delete" method="POST"><input type="hidden" name="filename" value="{{.Name}}"><input type="submit" value="Delete"></form></li>
       {{end}}
       </ul>
       <h2>Upload New File</h2>
       <p>
-      <form action="/file/upload" method="post" enctype="multipart/form-data">
+      <form action="/files/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file">
         <input type="submit" value="Upload">
       </form>

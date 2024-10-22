@@ -15,7 +15,7 @@
       Register New Radio
       {{end}}
       </h2>
-      <form action="/radio/submit" method="POST">
+      <form action="/radios/submit" method="POST">
         <input type="hidden" name="radioId" value="{{.Radio.Id}}">
         <p>
         <label for="radioName">Name:</label>
@@ -31,7 +31,7 @@
       </form>
       {{if .Radio.Id}}
       <h3>Delete</h3>
-      <form action="/radio/delete" method="POST">
+      <form action="/radios/delete" method="POST">
         <input type="hidden" name="radioId" value="{{.Radio.Id}}">
         <p>
         <input type="submit" value="Delete Radio">

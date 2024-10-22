@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"code.octet-stream.net/broadcaster/protocol"
+	"code.octet-stream.net/broadcaster/internal/protocol"
 	"golang.org/x/net/websocket"
 )
 
@@ -18,12 +18,12 @@ func WebSync(ws *websocket.Conn) {
 
 	badRead := false
 	isAuthenticated := false
-	var user string
+	var user User
 	for {
 		// Ignore any massively oversize messages
 		n, err := ws.Read(buf)
 		if err != nil {
-			if user != "" {
+			if user.Username != "" {
 				log.Println("Lost websocket to user:", user)
 			} else {
 				log.Println("Lost unauthenticated website websocket")
@@ -40,9 +40,9 @@ func WebSync(ws *websocket.Conn) {
 
 		if !isAuthenticated {
 			token := string(buf[:n])
-			u, err := db.GetUserForSession(token)
+			u, err := users.GetUserForSession(token)
 			if err != nil {
-				log.Println("Could not find user for offered token", token)
+				log.Println("Could not find user for offered token", token, err)
 				ws.Close()
 				return
 			}
@@ -145,7 +145,7 @@ func sendRadioStatusToWeb(ws *websocket.Conn) error {
 		Radios: webStatuses,
 	}
 	buf := new(strings.Builder)
-	tmpl := template.Must(template.ParseFiles("templates/radios.partial.html"))
+	tmpl := template.Must(template.ParseFS(content, "templates/radios.partial.html"))
 	tmpl.Execute(buf, data)
 	_, err := ws.Write([]byte(buf.String()))
 	return err
