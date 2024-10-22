@@ -1,9 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Broadcaster</title>
+
     <script type="text/javascript">
     function deleteItem(sender) {
       sender.parentNode.remove();
@@ -17,10 +12,8 @@
       parent.insertBefore(p, marker);
     }
     </script>
-  </head>
-  <body>
-    <main>
-      <h1>A specific playlist</h1>
+
+    <h1>A specific playlist</h1>
       <h2>
       {{if .Playlist.Id}}
       Edit Playlist
@@ -95,6 +88,3 @@
         </select>
         <a href="#" onclick="deleteItem(this)">(Delete Item)</a>
       </template>
-    </main>
-  </body>
-</html>

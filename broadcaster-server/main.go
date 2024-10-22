@@ -98,18 +98,37 @@ func main() {
 	}
 }
 
+type HeaderData struct {
+	SelectedMenu string
+}
+
+func renderHeader(w http.ResponseWriter, selectedMenu string) {
+	tmpl := template.Must(template.ParseFS(content, "templates/header.html"))
+	data := HeaderData{
+		SelectedMenu: selectedMenu,
+	}
+	tmpl.Execute(w, data)
+}
+
+func renderFooter(w http.ResponseWriter) {
+	tmpl := template.Must(template.ParseFS(content, "templates/footer.html"))
+	tmpl.Execute(w, nil)
+}
+
 type HomeData struct {
 	LoggedIn bool
 	Username string
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
+	renderHeader(w, "status")
 	tmpl := template.Must(template.ParseFS(content, "templates/index.html"))
 	data := HomeData{
 		LoggedIn: true,
 		Username: "Bob",
 	}
 	tmpl.Execute(w, data)
+	renderFooter(w)
 }
 
 type LogInData struct {
@@ -136,9 +155,10 @@ func logInPage(w http.ResponseWriter, r *http.Request) {
 	data := LogInData{
 		Error: errText,
 	}
-
+	renderHeader(w, "")
 	tmpl := template.Must(template.ParseFS(content, "templates/login.html"))
 	tmpl.Execute(w, data)
+	renderFooter(w)
 }
 
 func playlistSection(w http.ResponseWriter, r *http.Request) {
@@ -244,11 +264,13 @@ func changePasswordPage(w http.ResponseWriter, r *http.Request) {
 		data.Message = ""
 		data.ShowForm = true
 	}
+	renderHeader(w, "change-password")
 	tmpl := template.Must(template.ParseFS(content, "templates/change_password.html"))
 	err = tmpl.Execute(w, data)
 	if err != nil {
 		log.Fatal(err)
 	}
+	renderFooter(w)
 }
 
 type PlaylistsPageData struct {
@@ -256,6 +278,7 @@ type PlaylistsPageData struct {
 }
 
 func playlistsPage(w http.ResponseWriter, _ *http.Request) {
+	renderHeader(w, "playlists")
 	data := PlaylistsPageData{
 		Playlists: db.GetPlaylists(),
 	}
@@ -264,6 +287,7 @@ func playlistsPage(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	renderFooter(w)
 }
 
 type RadiosPageData struct {
@@ -271,6 +295,7 @@ type RadiosPageData struct {
 }
 
 func radiosPage(w http.ResponseWriter, _ *http.Request) {
+	renderHeader(w, "radios")
 	data := RadiosPageData{
 		Radios: db.GetRadios(),
 	}
@@ -279,6 +304,7 @@ func radiosPage(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	renderFooter(w)
 }
 
 type EditPlaylistPageData struct {
@@ -306,8 +332,10 @@ func editPlaylistPage(w http.ResponseWriter, r *http.Request, id int) {
 		data.Playlist = playlist
 		data.Entries = db.GetEntriesForPlaylist(id)
 	}
+	renderHeader(w, "radios")
 	tmpl := template.Must(template.ParseFS(content, "templates/playlist.html"))
 	tmpl.Execute(w, data)
+	renderFooter(w)
 }
 
 func submitPlaylist(w http.ResponseWriter, r *http.Request) {
@@ -393,8 +421,10 @@ func editRadioPage(w http.ResponseWriter, r *http.Request, id int) {
 		}
 		data.Radio = radio
 	}
+	renderHeader(w, "radios")
 	tmpl := template.Must(template.ParseFS(content, "templates/radio.html"))
 	tmpl.Execute(w, data)
+	renderFooter(w)
 }
 
 func submitRadio(w http.ResponseWriter, r *http.Request) {
@@ -434,6 +464,7 @@ type FilesPageData struct {
 }
 
 func filesPage(w http.ResponseWriter, _ *http.Request) {
+	renderHeader(w, "files")
 	data := FilesPageData{
 		Files: files.Files(),
 	}
@@ -443,6 +474,7 @@ func filesPage(w http.ResponseWriter, _ *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	renderFooter(w)
 }
 
 func deleteFile(w http.ResponseWriter, r *http.Request) {
@@ -473,8 +505,10 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 
 func logOutPage(w http.ResponseWriter, r *http.Request) {
 	clearSessionCookie(w)
+	renderHeader(w, "logout")
 	tmpl := template.Must(template.ParseFS(content, "templates/logout.html"))
 	tmpl.Execute(w, nil)
+	renderFooter(w)
 }
 
 func stopPage(w http.ResponseWriter, r *http.Request) {
