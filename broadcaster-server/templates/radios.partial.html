@@ -40,7 +40,7 @@
     <td class="outer {{.ChannelClass}}">
     {{.ChannelState}}
     </td>
-    <td class="outer">
+    <td class="outer" colspan="2">
     <table class="playlist-table">
         <tr>
         <td class="playlist-field">
@@ -68,12 +68,14 @@
         </tr>
     </table>
     </td>
-    <td class="outer stop">
+    <tr>
+    <td class="outer stop" colspan="3">
     <form action="/stop" method="post">
         <input type="hidden" name="radioId" value="{{.Id}}">
         <input type="submit" value="Cancel Playback" {{if .DisableCancel}} disabled {{end}}>
     </form>
     </td>
+    </tr>
 </tr>
 </table>
 {{end}}

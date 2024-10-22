@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"embed"
+	_ "embed"
 	"flag"
 	"fmt"
 	"golang.org/x/net/websocket"
@@ -20,8 +20,9 @@ import (
 const version = "v1.0.0"
 const formatString = "2006-01-02T15:04"
 
-//go:embed templates/*
-var content embed.FS
+// //go:embed templates/*
+//var content embed.FS
+var content = os.DirFS("../broadcaster-server/")
 
 var config ServerConfig = NewServerConfig()
 
@@ -100,19 +101,27 @@ func main() {
 
 type HeaderData struct {
 	SelectedMenu string
+	Username string
 }
 
 func renderHeader(w http.ResponseWriter, selectedMenu string) {
 	tmpl := template.Must(template.ParseFS(content, "templates/header.html"))
 	data := HeaderData{
 		SelectedMenu: selectedMenu,
+		Username: "username",
 	}
-	tmpl.Execute(w, data)
+	err := tmpl.Execute(w, data)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func renderFooter(w http.ResponseWriter) {
 	tmpl := template.Must(template.ParseFS(content, "templates/footer.html"))
-	tmpl.Execute(w, nil)
+	err := tmpl.Execute(w, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 type HomeData struct {
@@ -505,7 +514,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 
 func logOutPage(w http.ResponseWriter, r *http.Request) {
 	clearSessionCookie(w)
-	renderHeader(w, "logout")
+	renderHeader(w, "")
 	tmpl := template.Must(template.ParseFS(content, "templates/logout.html"))
 	tmpl.Execute(w, nil)
 	renderFooter(w)

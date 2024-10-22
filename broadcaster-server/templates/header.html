@@ -12,9 +12,8 @@
         border-collapse: collapse;
       }
       td.clear {
-        width: 5em;
-        height: 5em;
         text-align: center;
+        background-color: #eeeeee;
       }
       .time-table {
         font-size: 90%;
@@ -26,7 +25,6 @@
       }
       .playlist-table {
         font-size: 90%;
-        width: 30em;
       }
       .stop {
         text-align: center;
@@ -34,7 +32,88 @@
       .head {
         text-align: center;
       }
+      body {
+        background-color: #447744;
+        font-family: "sans-serif";
+      }
+      main {
+        background-color: #dddddd;
+        max-width: 80em;
+        margin-left: auto;
+        margin-right: auto;
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        border: 2px solid black;
+      }
+      .menu {
+        min-width: 12em;
+        display: flex;
+        flex-grow: 1;
+        flex-direction: column;
+        /* border: black solid; */
+        /* border-width: 0px 2px 0px 0px; */
+        text-align: center;
+      }
+      .menu-item {
+        height: 2em;
+        text-align: center;
+        line-height: 2em;
+        background-color: #aaaaaa;
+        border: black solid;
+        border-width: 1px 1px 0px 0px;
+      }
+      .menu-item a {
+        text-decoration: none;
+        color: black;
+      }
+      .menu-item.logout {
+        border-width: 1px 1px 1px 0px;
+      }
+      .menu-item:first-of-type {
+        border-width: 0px 1px 0px 0px;
+      }
+      .menu-item.selected {
+        background-color: #aaccaa;
+      }
+      .logged-in {
+        padding-top: 2em;
+        padding-bottom: 2em;
+        text-align: center;
+        border: black solid;
+        border-width: 0px 1px 0px 0px;
+      }
+      .menu-tail {
+        flex-grow: 1;
+        height: 2em;
+        line-height: 2em;
+        border: black solid;
+        border-width: 0px 1px 0px 0px;
+      }
+      .content {
+        flex-grow: 3;
+        padding: 5em;
+        padding-top: 1em;
+        overflow-wrap: break-word;
+        max-width: 50em;
+      }
     </style>
   </head>
   <body>
     <main>
+    {{if .SelectedMenu}}
+        <div class="menu">
+            <div class="menu-item {{if eq .SelectedMenu "status"}}selected{{end}}"><a href="/">Status</a></div>
+            <div class="menu-item {{if eq .SelectedMenu "files"}}selected{{end}}"><a href="/files/">Files</a></div>
+            <div class="menu-item {{if eq .SelectedMenu "playlists"}}selected{{end}}"><a href="/playlists/">Playlists</a></div>
+            <div class="menu-item {{if eq .SelectedMenu "radios"}}selected{{end}}"><a href="/radios/">Radios</a></div>
+            <div class="menu-item {{if eq .SelectedMenu "users"}}selected{{end}}"><a href="/users/">Users</a></div>
+            <div class="menu-item {{if eq .SelectedMenu "change-password"}}selected{{end}}"><a href="/change-password">Change Password</a></div>
+            <div class="menu-item logout"><a href="/logout">Log Out</a></div>
+            {{if .Username}}
+            <div class="logged-in">Logged in as:<br><i>{{.Username}}</i></div>
+            {{end}}
+            <div class="menu-tail"><small><i>broadcaster-server v1.0.0</i></small></div>
+        </div>
+    {{end}}
+    <div class="content">
