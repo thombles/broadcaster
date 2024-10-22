@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	_ "embed"
+	"embed"
 	"flag"
 	"fmt"
 	"golang.org/x/net/websocket"
@@ -20,9 +20,9 @@ import (
 const version = "v1.0.0"
 const formatString = "2006-01-02T15:04"
 
-// //go:embed templates/*
-//var content embed.FS
-var content = os.DirFS("../broadcaster-server/")
+//go:embed templates/*
+var content embed.FS
+//var content = os.DirFS("../broadcaster-server/")
 
 var config ServerConfig = NewServerConfig()
 
