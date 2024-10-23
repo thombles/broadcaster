@@ -89,7 +89,7 @@
         border-width: 0px 1px 0px 0px;
       }
       .content {
-        flex-grow: 3;
+        flex-grow: 30;
         padding: 5em;
         padding-top: 1em;
         overflow-wrap: break-word;
@@ -105,11 +105,13 @@
             <div class="menu-item {{if eq .SelectedMenu "files"}}selected{{end}}"><a href="/files/">Files</a></div>
             <div class="menu-item {{if eq .SelectedMenu "playlists"}}selected{{end}}"><a href="/playlists/">Playlists</a></div>
             <div class="menu-item {{if eq .SelectedMenu "radios"}}selected{{end}}"><a href="/radios/">Radios</a></div>
+            {{if .User.IsAdmin}}
             <div class="menu-item {{if eq .SelectedMenu "users"}}selected{{end}}"><a href="/users/">Users</a></div>
+            {{end}}
             <div class="menu-item {{if eq .SelectedMenu "change-password"}}selected{{end}}"><a href="/change-password">Change Password</a></div>
             <div class="menu-item logout"><a href="/logout">Log Out</a></div>
-            {{if .Username}}
-            <div class="logged-in">Logged in as:<br><i>{{.Username}}</i></div>
+            {{if .User.Username}}
+            <div class="logged-in">Logged in as:<br><i>{{.User.Username}}</i></div>
             {{end}}
             <div class="menu-tail"><small><i>broadcaster-server vTODO</i></small></div>
         </div>
