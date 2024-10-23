@@ -79,6 +79,15 @@ func (d *Database) GetUser(username string) (User, error) {
 	return user, nil
 }
 
+func (d *Database) GetUserById(id int) (User, error) {
+	var user User
+	err := d.sqldb.QueryRow("SELECT id, username, password_hash, is_admin FROM users WHERE id = ?", id).Scan(&user.Id, &user.Username, &user.PasswordHash, &user.IsAdmin)
+	if err != nil {
+		return User{}, errors.New("no user with that id")
+	}
+	return user, nil
+}
+
 func (d *Database) GetUsers() []User {
 	ret := make([]User, 0)
 	rows, err := d.sqldb.Query("SELECT id, username, password_hash, is_admin FROM users ORDER BY username ASC")

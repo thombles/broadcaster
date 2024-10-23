@@ -5,6 +5,7 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/websocket"
 	"html/template"
 	"io"
@@ -92,7 +93,7 @@ func main() {
 
 	// Admin routes
 
-	// TODO: user management
+	http.Handle("/users/", requireAdmin(userSection))
 
 	// Websocket routes, which perform their own auth
 
@@ -271,6 +272,123 @@ func radioSection(w http.ResponseWriter, r *http.Request, user User) {
 	}
 }
 
+func userSection(w http.ResponseWriter, r *http.Request, user User) {
+	path := strings.Split(r.URL.Path, "/")
+	if len(path) != 3 {
+		http.NotFound(w, r)
+		return
+	}
+	if path[2] == "new" {
+		editUserPage(w, r, 0)
+	} else if path[2] == "submit" && r.Method == "POST" {
+		submitUser(w, r)
+	} else if path[2] == "delete" && r.Method == "POST" {
+		deleteUser(w, r)
+	} else if path[2] == "reset-password" && r.Method == "POST" {
+		resetUserPassword(w, r)
+	} else if path[2] == "" {
+		usersPage(w, r)
+	} else {
+		id, err := strconv.Atoi(path[2])
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		editUserPage(w, r, id)
+	}
+}
+
+type EditUserPageData struct {
+	User User
+}
+
+func editUserPage(w http.ResponseWriter, r *http.Request, id int) {
+	var data EditUserPageData
+	if id != 0 {
+		user, err := db.GetUserById(id)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		data.User = user
+	}
+	renderHeader(w, "users")
+	tmpl := template.Must(template.ParseFS(content, "templates/user.html"))
+	tmpl.Execute(w, data)
+	renderFooter(w)
+}
+
+func submitUser(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err == nil {
+		id, err := strconv.Atoi(r.Form.Get("userId"))
+		if err != nil {
+			return
+		}
+		if id == 0 {
+			newPassword := r.Form.Get("password")
+			hashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+			if err != nil {
+				return
+			}
+			user := User{
+				Id:           0,
+				Username:     r.Form.Get("username"),
+				IsAdmin:      r.Form.Get("isAdmin") == "1",
+				PasswordHash: string(hashed),
+			}
+			db.CreateUser(user)
+		} else {
+			user, err := db.GetUserById(id)
+			if err != nil {
+				http.NotFound(w, r)
+				return
+			}
+			db.SetUserIsAdmin(user.Username, r.Form.Get("isAdmin") == "1")
+		}
+	}
+	http.Redirect(w, r, "/users/", http.StatusFound)
+}
+
+func deleteUser(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err == nil {
+		id, err := strconv.Atoi(r.Form.Get("userId"))
+		if err != nil {
+			return
+		}
+		user, err := db.GetUserById(id)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		db.DeleteUser(user.Username)
+	}
+	http.Redirect(w, r, "/users/", http.StatusFound)
+}
+
+func resetUserPassword(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err == nil {
+		id, err := strconv.Atoi(r.Form.Get("userId"))
+		if err != nil {
+			return
+		}
+		user, err := db.GetUserById(id)
+		if err != nil {
+			http.NotFound(w, r)
+			return
+		}
+		newPassword := r.Form.Get("newPassword")
+		hashed, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return
+		}
+		db.SetUserPassword(user.Username, string(hashed))
+	}
+	http.Redirect(w, r, "/users/", http.StatusFound)
+}
+
 type ChangePasswordPageData struct {
 	Message  string
 	ShowForm bool
@@ -305,6 +423,23 @@ func changePasswordPage(w http.ResponseWriter, r *http.Request, user User) {
 	}
 	renderHeader(w, "change-password")
 	tmpl := template.Must(template.ParseFS(content, "templates/change_password.html"))
+	err := tmpl.Execute(w, data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	renderFooter(w)
+}
+
+type UsersPageData struct {
+	Users []User
+}
+
+func usersPage(w http.ResponseWriter, _ *http.Request) {
+	renderHeader(w, "users")
+	data := UsersPageData{
+		Users: db.GetUsers(),
+	}
+	tmpl := template.Must(template.ParseFS(content, "templates/users.html"))
 	err := tmpl.Execute(w, data)
 	if err != nil {
 		log.Fatal(err)

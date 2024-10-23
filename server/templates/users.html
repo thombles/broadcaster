@@ -1,0 +1,8 @@
+
+      <h1>User Management</h1>
+      <ul>
+      {{range .Users}}
+        <li><b>{{.Username}}</b> <a href="/users/{{.Id}}">(Edit)</a></li>
+      {{end}}
+      </ul>
+      <p><a href="/users/new">Add New User</a></p>

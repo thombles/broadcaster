@@ -1,0 +1,48 @@
+
+      <h2>
+      {{if .User.Id}}
+      Edit User
+      {{else}}
+      Add New User
+      {{end}}
+      </h2>
+      <form action="/users/submit" method="POST">
+        <input type="hidden" name="userId" value="{{.User.Id}}">
+        <p>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" value="{{.User.Username}}" {{if .User.Id}} disabled {{end}}>
+        </p>
+        <p>
+        <input type="checkbox" id="isAdmin" name="isAdmin" value="1" {{if .User.IsAdmin}} checked {{end}}>
+        <label for="isAdmin">Is an administrator - can manage system users</label><br>
+        </p>
+        {{if not .User.Id}}
+        <p>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password">
+        </p>
+        {{end}}
+        <p>
+        <input type="submit" value="Save User">
+        </p>
+      </form>
+      {{if .User.Id}}
+      <h3>Reset Password</h3>
+      <form action="/users/reset-password" method="POST">
+        <input type="hidden" name="userId" value="{{.User.Id}}">
+        <p>
+        <label for="newPassword">New Password:</label>
+        <input type="password" id="newPassword" name="newPassword">
+        </p>
+        <p>
+        <input type="submit" value="Reset Password">
+        </p>
+      </form>
+      <h3>Delete</h3>
+      <form action="/users/delete" method="POST">
+        <input type="hidden" name="userId" value="{{.User.Id}}">
+        <p>
+        <input type="submit" value="Delete User">
+        </p>
+      </form>
+      {{end}}
