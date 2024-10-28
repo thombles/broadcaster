@@ -42,6 +42,8 @@ func InitDatabase() {
 	CREATE TABLE IF NOT EXISTS playlist_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, playlist_id INTEGER, position INTEGER, filename TEXT, delay_seconds INTEGER, is_relative INTEGER, CONSTRAINT fk_playlists FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE);
 	CREATE TABLE IF NOT EXISTS radios (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, token TEXT);
 	CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, username TEXT UNIQUE, password_hash TEXT, is_admin INTEGER);
+
+	DELETE FROM sessions WHERE expiry < CURRENT_TIMESTAMP;
 	`
 	_, err = db.sqldb.Exec(sqlStmt)
 	if err != nil {
@@ -111,6 +113,10 @@ func (d *Database) SetUserPassword(username string, passwordHash string) {
 
 func (d *Database) ClearOtherSessions(username string, token string) {
 	d.sqldb.Exec("DELETE FROM sessions WHERE username = ? AND token != ?", username, token)
+}
+
+func (d *Database) ClearSession(username string, token string) {
+	d.sqldb.Exec("DELETE FROM sessions WHERE username = ? AND token = ?", username, token)
 }
 
 func (d *Database) SetUserIsAdmin(username string, isAdmin bool) {

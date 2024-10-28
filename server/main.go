@@ -678,6 +678,10 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func logOutPage(w http.ResponseWriter, r *http.Request, user User) {
+	cookie, err := r.Cookie("broadcast_session")
+	if err == nil {
+		db.ClearSession(user.Username, cookie.Value)
+	}
 	clearSessionCookie(w)
 	renderHeader(w, "", user)
 	tmpl := template.Must(template.ParseFS(content, "templates/logout.html"))
