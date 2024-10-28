@@ -22,18 +22,7 @@
       // initial connection on page load
       connectWebsocket();
     </script>
-
-      <h1>Welcome!</h1>
-      {{if .LoggedIn}}
-      <p>Your username is: {{.Username}}.</p>
-      <p><a href="/logout">Log Out</a></p>
-      {{else}}
-      <p><a href="/login">Log In</a></p>
-      {{end}}
-      <p><a href="/files/">File Management</a></p>
-      <p><a href="/playlists/">Playlist Management</a></p>
-      <p><a href="/radios/">Radio Management</a></p>
-      <h2>Connected Radios</h2>
+      <h1>Connected Radios</h1>
       <div id="connected-radios">
         <i>Loading...</i>
       </div>

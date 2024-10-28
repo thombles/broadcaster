@@ -157,7 +157,7 @@ func (d *Database) DeletePlaylist(playlistId int) {
 
 func (d *Database) GetPlaylists() []Playlist {
 	ret := make([]Playlist, 0)
-	rows, err := d.sqldb.Query("SELECT id, enabled, name, start_time FROM playlists ORDER BY id ASC")
+	rows, err := d.sqldb.Query("SELECT id, enabled, name, start_time FROM playlists ORDER BY start_time DESC")
 	if err != nil {
 		return ret
 	}
