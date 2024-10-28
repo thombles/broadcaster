@@ -28,7 +28,6 @@ func currentUser(_ http.ResponseWriter, r *http.Request) (User, error) {
 
 func createSessionCookie(w http.ResponseWriter, username string) {
 	sess := generateSession()
-	log.Println("Generated a random session", sess)
 	expiration := time.Now().Add(365 * 24 * time.Hour)
 	cookie := http.Cookie{Name: "broadcast_session", Value: sess, Expires: expiration, SameSite: http.SameSiteLaxMode}
 	db.InsertSession(username, sess, expiration)

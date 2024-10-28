@@ -55,7 +55,7 @@ func main() {
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		sig := <-sig
-		log.Println("Radio shutting down due to signal", sig)
+		log.Println("Radio shutting down due to signal:", sig)
 		// Make sure we always stop PTT when program ends
 		ptt.DisengagePTT()
 		os.Exit(0)

@@ -27,15 +27,13 @@ var files AudioFiles
 func InitAudioFiles(path string) {
 	files.changeWait = make(chan bool)
 	files.path = path
-	log.Println("initing audio files")
 	files.Refresh()
-	log.Println("done")
 }
 
 func (r *AudioFiles) Refresh() {
 	entries, err := os.ReadDir(r.path)
 	if err != nil {
-		log.Println("couldn't read dir", r.path)
+		log.Println("Couldn't read dir", r.path)
 		return
 	}
 	r.filesMutex.Lock()
@@ -44,7 +42,7 @@ func (r *AudioFiles) Refresh() {
 	for _, file := range entries {
 		f, err := os.Open(filepath.Join(r.path, file.Name()))
 		if err != nil {
-			log.Println("couldn't open", file.Name())
+			log.Println("Couldn't open", file.Name())
 			return
 		}
 		hash := sha256.New()

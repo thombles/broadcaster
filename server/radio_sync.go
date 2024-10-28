@@ -8,7 +8,7 @@ import (
 )
 
 func RadioSync(ws *websocket.Conn) {
-	log.Println("A websocket connected, I think")
+	log.Println("Radio websocket connected, not yet authenticated")
 	buf := make([]byte, 16384)
 
 	badRead := false

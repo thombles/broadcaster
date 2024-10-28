@@ -413,7 +413,7 @@ func changePasswordPage(w http.ResponseWriter, r *http.Request, user User) {
 			data.ShowForm = false
 			cookie, err := r.Cookie("broadcast_session")
 			if err == nil {
-				log.Println("clearing other sessions for username", user.Username, "token", cookie.Value)
+				log.Println("Clearing other sessions for username", user.Username, "token", cookie.Value)
 				db.ClearOtherSessions(user.Username, cookie.Value)
 			}
 		}
@@ -642,7 +642,6 @@ func filesPage(w http.ResponseWriter, _ *http.Request, user User) {
 	data := FilesPageData{
 		Files: files.Files(),
 	}
-	log.Println("file page data", data)
 	tmpl := template.Must(template.ParseFS(content, "templates/files.html"))
 	err := tmpl.Execute(w, data)
 	if err != nil {
@@ -671,7 +670,7 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 		f, _ := os.Create(path)
 		defer f.Close()
 		io.Copy(f, file)
-		log.Println("uploaded file to", path)
+		log.Println("Uploaded file to", path)
 		files.Refresh()
 	}
 	http.Redirect(w, r, "/files/", http.StatusFound)
