@@ -1,8 +1,9 @@
 
       <h1>Radios</h1>
-      <ul>
+      <table class="listing" border="1">
+      <tr><th>Name</th><th>Token</th><th></th></tr>
       {{range .Radios}}
-        <li><b>{{.Name}}</b> {{.Token}} <a href="/radios/{{.Id}}">(Edit)</a></li>
+      <tr><td>{{.Name}}</td><td class="token">{{.Token}}</td><td><a href="/radios/{{.Id}}">(Edit)</a></td></tr>
       {{end}}
-      </ul>
+      </table>
       <p><a href="/radios/new">Register New Radio</a></p>

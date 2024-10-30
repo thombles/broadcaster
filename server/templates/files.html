@@ -1,10 +1,11 @@
 
       <h1>Audio File Management</h1>
       <p>All files can be downloaded from the <a href="/file-downloads/">public file listing</a>.</p>
-      <table>
+      <table class="listing" border="1">
+      <tr><th>Name</th><th></th></tr>
       {{range .Files}}
-        <tr>
-        <td><b>{{.Name}}</b></td>
+      <tr>
+        <td>{{.Name}}</td>
         <td><form action="/files/delete" method="POST"><input type="hidden" name="filename" value="{{.Name}}"><input type="submit" value="Delete"></form></td>
         </tr>
       {{end}}

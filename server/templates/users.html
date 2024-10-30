@@ -1,8 +1,9 @@
 
       <h1>User Management</h1>
-      <ul>
+      <table class="listing" border="1">
+      <tr><th>Username</th><th>Is Admin?</th><th></th></tr>
       {{range .Users}}
-        <li><b>{{.Username}}</b> <a href="/users/{{.Id}}">(Edit)</a></li>
+      <tr><td>{{.Username}}</td><td class="enabled">{{if .IsAdmin}}✅{{else}}❌{{end}}</td><td><a href="/users/{{.Id}}">(Edit)</a></td></tr>
       {{end}}
-      </ul>
+      </table>
       <p><a href="/users/new">Add New User</a></p>

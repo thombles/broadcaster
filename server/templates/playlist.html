@@ -39,11 +39,11 @@
         {{range .Entries}}
         <p>
         Wait until
-        <input type="text" name="delaySeconds" value="{{.DelaySeconds}}">
-        seconds from
+        <input type="text" name="delaySeconds" value="{{.DelaySeconds}}" class="seconds">
+        seconds
         <select name="isRelative">
-          <option value="1">previous item</option>
-          <option value="0" {{if not .IsRelative}} selected="selected" {{end}}>start of transmission</option>
+          <option value="1">from previous</option>
+          <option value="0" {{if not .IsRelative}} selected="selected" {{end}}>from start</option>
         </select>
         then play
         <select name="filename">{{$f := .Filename}}
@@ -52,7 +52,7 @@
           <option value="{{.}}" {{if eq . $f }} selected="selected" {{end}}>{{.}}</option>
           {{end}}
         </select>
-        <a href="#" onclick="deleteItem(this)">(Delete Item)</a>
+        <a href="#" onclick="deleteItem(this)">(Delete)</a>
         </p>
         {{end}}
         <p>
@@ -73,11 +73,11 @@
       {{end}}
       <template id="item-template">
         Wait until
-        <input type="text" name="delaySeconds" value="0">
-        seconds from
+        <input type="text" name="delaySeconds" value="0" class="seconds">
+        seconds
         <select name="isRelative">
-          <option value="1">previous item</option>
-          <option value="0">start of transmission</option>
+          <option value="1">from previous</option>
+          <option value="0">from start</option>
         </select>
         then play
         <select name="filename">
@@ -86,5 +86,5 @@
           <option value="{{.}}">{{.}}</option>
           {{end}}
         </select>
-        <a href="#" onclick="deleteItem(this)">(Delete Item)</a>
+        <a href="#" onclick="deleteItem(this)">(Delete)</a>
       </template>

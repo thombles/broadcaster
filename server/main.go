@@ -77,7 +77,7 @@ func main() {
 	// Public routes
 
 	http.HandleFunc("/login", logInPage)
-	http.Handle("/file-downloads/", http.StripPrefix("/file-downloads/", http.FileServer(http.Dir(config.AudioFilesPath))))
+	http.Handle("/file-downloads/", applyDisposition(http.StripPrefix("/file-downloads/", http.FileServer(http.Dir(config.AudioFilesPath)))))
 
 	// Authenticated routes
 
@@ -103,6 +103,24 @@ func main() {
 	err := http.ListenAndServe(config.BindAddress+":"+strconv.Itoa(config.Port), nil)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+type DispositionMiddleware struct {
+	handler http.Handler
+}
+
+func (m DispositionMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println("path", r.URL.Path)
+	if r.URL.Path != "/file-downloads/" {
+		w.Header().Add("Content-Disposition", "attachment")
+	}
+	m.handler.ServeHTTP(w, r)
+}
+
+func applyDisposition(handler http.Handler) DispositionMiddleware {
+	return DispositionMiddleware{
+		handler: handler,
 	}
 }
 
@@ -139,6 +157,7 @@ func requireAdmin(handler authenticatedHandler) AuthMiddleware {
 type HeaderData struct {
 	SelectedMenu string
 	User         User
+	Version      string
 }
 
 func renderHeader(w http.ResponseWriter, selectedMenu string, user User) {
@@ -146,6 +165,7 @@ func renderHeader(w http.ResponseWriter, selectedMenu string, user User) {
 	data := HeaderData{
 		SelectedMenu: selectedMenu,
 		User:         user,
+		Version:      version,
 	}
 	err := tmpl.Execute(w, data)
 	if err != nil {
@@ -456,6 +476,9 @@ func playlistsPage(w http.ResponseWriter, _ *http.Request, user User) {
 	data := PlaylistsPageData{
 		Playlists: db.GetPlaylists(),
 	}
+	for i := range data.Playlists {
+		data.Playlists[i].StartTime = strings.Replace(data.Playlists[i].StartTime, "T", " ", -1)
+	}
 	tmpl := template.Must(template.ParseFS(content, "templates/playlists.html"))
 	err := tmpl.Execute(w, data)
 	if err != nil {
@@ -506,7 +529,7 @@ func editPlaylistPage(w http.ResponseWriter, r *http.Request, id int, user User)
 		data.Playlist = playlist
 		data.Entries = db.GetEntriesForPlaylist(id)
 	}
-	renderHeader(w, "radios", user)
+	renderHeader(w, "playlists", user)
 	tmpl := template.Must(template.ParseFS(content, "templates/playlist.html"))
 	tmpl.Execute(w, data)
 	renderFooter(w)

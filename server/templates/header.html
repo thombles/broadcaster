@@ -8,12 +8,38 @@
       table.radio-status, td.outer {
         border: 1px solid;
       }
+      table.listing td, table.listing th {
+        padding: 0.35em;
+      }
+      td.enabled {
+        text-align: center;
+      }
+      td.token {
+        font-family: monospace;
+        font-size: 80%;
+      }
       table.inner {
         border-collapse: collapse;
       }
-      td.clear {
+      td.channel-state {
         text-align: center;
+        width: 5em;
+        height: 5em;
+      }
+      td.clear {
         background-color: #eeeeee;
+      }
+      td.cos {
+        background-color: #aaeeaa;
+      }
+      td.ptt {
+        background-color: #eeaaaa;
+      }
+      th {
+        text-align: left;
+      }
+      input.seconds {
+        width: 3em;
       }
       .time-table {
         font-size: 90%;
@@ -113,7 +139,7 @@
             {{if .User.Username}}
             <div class="logged-in">Logged in as:<br><i>{{.User.Username}}</i></div>
             {{end}}
-            <div class="menu-tail"><small><i>broadcaster-server vTODO</i></small></div>
+            <div class="menu-tail"><small><i>broadcaster-server {{.Version}}</i></small></div>
         </div>
     {{end}}
     <div class="content">

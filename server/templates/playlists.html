@@ -1,9 +1,9 @@
 
       <h1>Playlist Management</h1>
-      <table>
-      <tr><th>Name</th><th>Enabled?</th><th>Start Time</th><th></th></tr>
+      <table class="listing" border="1">
+      <tr><th>Name</th><th>Start Time</th><th>Enabled?</th><th></th></tr>
       {{range .Playlists}}
-      <tr><td>{{.Name}}</td><td>{{if .Enabled}}✅{{else}}❌{{end}}</td><td>{{.StartTime}}</td><td><a href="/playlists/{{.Id}}">(Edit)</a></td></tr>
+      <tr><td>{{.Name}}</td><td>{{.StartTime}}</td><td class="enabled">{{if .Enabled}}✅{{else}}❌{{end}}</td><td><a href="/playlists/{{.Id}}">(Edit)</a></td></tr>
       {{end}}
       </table>
       <p><a href="/playlists/new">Add New Playlist</a></p>
