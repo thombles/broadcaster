@@ -13,14 +13,13 @@
     }
     </script>
 
-    <h1>A specific playlist</h1>
-      <h2>
+      <h1>
       {{if .Playlist.Id}}
       Edit Playlist
       {{else}}
       Create New Playlist
       {{end}}
-      </h2>
+      </h1>
       <form action="/playlists/submit" method="POST">
         <input type="hidden" name="playlistId" value="{{.Playlist.Id}}">
         <p>

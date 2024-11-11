@@ -1,11 +1,11 @@
 
-      <h2>
+      <h1>
       {{if .User.Id}}
       Edit User
       {{else}}
       Add New User
       {{end}}
-      </h2>
+      </h1>
       <form action="/users/submit" method="POST">
         <input type="hidden" name="userId" value="{{.User.Id}}">
         <p>

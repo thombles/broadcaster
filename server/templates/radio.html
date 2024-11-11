@@ -1,12 +1,11 @@
 
-      <h1>A specific radio</h1>
-      <h2>
+      <h1>
       {{if .Radio.Id}}
       Edit Radio
       {{else}}
       Register New Radio
       {{end}}
-      </h2>
+      </h1>
       <form action="/radios/submit" method="POST">
         <input type="hidden" name="radioId" value="{{.Radio.Id}}">
         <p>
