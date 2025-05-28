@@ -1,15 +1,9 @@
 package main
 
 import (
-	"code.octet-stream.net/broadcaster/internal/protocol"
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/gopxl/beep/v2"
-	"github.com/gopxl/beep/v2/mp3"
-	"github.com/gopxl/beep/v2/speaker"
-	"github.com/gopxl/beep/v2/wav"
-	"golang.org/x/net/websocket"
 	"log"
 	"os"
 	"os/signal"
@@ -17,6 +11,13 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"code.octet-stream.net/broadcaster/internal/protocol"
+	"github.com/gopxl/beep/v2"
+	"github.com/gopxl/beep/v2/mp3"
+	"github.com/gopxl/beep/v2/speaker"
+	"github.com/gopxl/beep/v2/wav"
+	"golang.org/x/net/websocket"
 )
 
 const version = "v1.0.0"
@@ -130,6 +131,7 @@ func runWebsocket(fileSpecChan chan []protocol.FileSpec, playlistSpecChan chan [
 		}
 
 		if t == protocol.StopType {
+			log.Println("Received stop transmission message from server")
 			stop <- true
 		}
 	}
@@ -270,6 +272,7 @@ entries:
 		select {
 		case <-time.After(duration):
 		case <-cancel:
+			log.Println("Cancelling pre-play delay")
 			break entries
 		}
 
@@ -284,7 +287,6 @@ entries:
 			Playlist: playlist.Name,
 			Filename: p.Filename,
 		}
-		ptt.EngagePTT()
 		f, err := os.Open(filepath.Join(config.CachePath, p.Filename))
 		if err != nil {
 			log.Println("Couldn't open file for playlist", p.Filename)
@@ -308,13 +310,18 @@ entries:
 		defer streamer.Close()
 
 		done := make(chan bool)
+		log.Println("PTT on for playback")
+		ptt.EngagePTT()
 
 		if format.SampleRate != sampleRate {
+			log.Println("Configuring resampler for audio provided at sample rate", format.SampleRate)
 			resampled := beep.Resample(4, format.SampleRate, sampleRate, streamer)
+			log.Println("Playing resampled audio")
 			speaker.Play(beep.Seq(resampled, beep.Callback(func() {
 				done <- true
 			})))
 		} else {
+			log.Println("Playing audio at native sample rate")
 			speaker.Play(beep.Seq(streamer, beep.Callback(func() {
 				done <- true
 			})))
@@ -322,10 +329,13 @@ entries:
 
 		select {
 		case <-done:
+			log.Println("Audio playback complete")
 		case <-cancel:
+			log.Println("Disengaging PTT and aborting playlist playback")
 			ptt.DisengagePTT()
 			break entries
 		}
+		log.Println("PTT off since audio file has finished")
 		ptt.DisengagePTT()
 	}
 	log.Println("Playlist finished", playlist.Name)
