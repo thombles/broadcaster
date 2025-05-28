@@ -27,7 +27,7 @@ func NewRadioConfig() RadioConfig {
 		ServerURL:  "",
 		Token:      "",
 		CachePath:  "",
-		TimeZone:   "Australia/Hobart",
+		TimeZone:   "Local",
 	}
 }
 
