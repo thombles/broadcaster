@@ -5,8 +5,6 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
-	"golang.org/x/net/websocket"
 	"html/template"
 	"io"
 	"log"
@@ -16,9 +14,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/net/websocket"
 )
 
-const version = "v1.0.0"
+const version = "v1.1.0"
 const formatString = "2006-01-02T15:04:05"
 
 //go:embed templates/*
