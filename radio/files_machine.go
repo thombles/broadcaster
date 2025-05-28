@@ -1,7 +1,6 @@
 package main
 
 import (
-	"code.octet-stream.net/broadcaster/internal/protocol"
 	"crypto/sha256"
 	"encoding/hex"
 	"io"
@@ -9,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"code.octet-stream.net/broadcaster/internal/protocol"
 )
 
 type FilesMachine struct {
