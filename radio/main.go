@@ -242,7 +242,7 @@ func playlistWorker(ch <-chan []protocol.PlaylistSpec, stop <-chan bool) {
 				}
 			}
 			if found {
-				duration := soonestTime.Sub(time.Now())
+				duration := time.Until(soonestTime)
 				log.Println("Next playlist will be id", nextId, "in", duration.Seconds(), "seconds")
 				timer = time.NewTimer(duration)
 			} else {

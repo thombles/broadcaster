@@ -48,7 +48,7 @@ func (c *RadioConfig) Validate() error {
 		return errors.New("ServerURL must be provided in the configuration")
 	}
 	if c.Token == "" {
-		return errors.New("Token must be provided in the configuration")
+		return errors.New("token must be provided in the configuration")
 	}
 	return nil
 }
