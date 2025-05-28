@@ -32,7 +32,7 @@
         </p>
         <p>
         <label for="playlistStartTime">Transmission Start:</label>
-        <input type="datetime-local" id="playlistStartTime" name="playlistStartTime" value="{{.Playlist.StartTime}}">
+        <input type="datetime-local" id="playlistStartTime" name="playlistStartTime" value="{{.Playlist.StartTime}}" step="1">
         </p>
         <h3>Playlist Items</h3>
         {{range .Entries}}

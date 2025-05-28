@@ -19,7 +19,7 @@ import (
 )
 
 const version = "v1.0.0"
-const formatString = "2006-01-02T15:04"
+const formatString = "2006-01-02T15:04:05"
 
 //go:embed templates/*
 var content embed.FS
