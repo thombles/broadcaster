@@ -25,8 +25,8 @@ mkdir build && cd build
 mkdir "${BASENAME}"
 go build ../server/
 go build ../radio/
-mv server "${BASENAME}/broadcast-server"
-mv radio "${BASENAME}/broadcast-radio"
+mv server "${BASENAME}/broadcaster-server"
+mv radio "${BASENAME}/broadcaster-radio"
 
 ${TARCMD}
 
