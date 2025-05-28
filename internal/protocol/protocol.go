@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	StartTimeFormat = "2006-01-02T15:04:05"
-	LocalTimeFormat = "Mon _2 Jan 2006 15:04:05"
+	StartTimeFormat     = "2006-01-02T15:04"
+	StartTimeFormatSecs = "2006-01-02T15:04:05"
+	LocalTimeFormat     = "Mon _2 Jan 2006 15:04:05"
 
 	// Radio to server
 

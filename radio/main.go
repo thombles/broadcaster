@@ -227,7 +227,10 @@ func playlistWorker(ch <-chan []protocol.PlaylistSpec, stop <-chan bool) {
 			}
 			var soonestTime time.Time
 			for _, v := range specs {
-				t, err := time.ParseInLocation(protocol.StartTimeFormat, v.StartTime, loc)
+				t, err := time.ParseInLocation(protocol.StartTimeFormatSecs, v.StartTime, loc)
+				if err != nil {
+					t, err = time.ParseInLocation(protocol.StartTimeFormat, v.StartTime, loc)
+				}
 				if err != nil {
 					log.Println("Error parsing start time", err)
 					continue

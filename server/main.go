@@ -15,12 +15,12 @@ import (
 	"strings"
 	"time"
 
+	"code.octet-stream.net/broadcaster/internal/protocol"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/websocket"
 )
 
 const version = "v1.1.0"
-const formatString = "2006-01-02T15:04:05"
 
 //go:embed templates/*
 var content embed.FS
@@ -519,7 +519,7 @@ func editPlaylistPage(w http.ResponseWriter, r *http.Request, id int, user User)
 	if id == 0 {
 		data.Playlist.Enabled = true
 		data.Playlist.Name = "New Playlist"
-		data.Playlist.StartTime = time.Now().Format(formatString)
+		data.Playlist.StartTime = time.Now().Format(protocol.StartTimeFormatSecs)
 		data.Entries = append(data.Entries, PlaylistEntry{})
 	} else {
 		playlist, err := db.GetPlaylist(id)
@@ -544,7 +544,10 @@ func submitPlaylist(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return
 		}
-		_, err = time.Parse(formatString, r.Form.Get("playlistStartTime"))
+		_, err = time.Parse(protocol.StartTimeFormatSecs, r.Form.Get("playlistStartTime"))
+		if err != nil {
+			_, err = time.Parse(protocol.StartTimeFormat, r.Form.Get("playlistStartTime"))
+		}
 		if err != nil {
 			return
 		}
