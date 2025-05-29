@@ -24,7 +24,7 @@ func WebSync(ws *websocket.Conn) {
 		n, err := ws.Read(buf)
 		if err != nil {
 			if user.Username != "" {
-				log.Println("Lost websocket to user:", user)
+				log.Println("Lost websocket to user:", user.Username)
 			} else {
 				log.Println("Lost unauthenticated website websocket")
 			}
@@ -47,7 +47,7 @@ func WebSync(ws *websocket.Conn) {
 				return
 			}
 			user = u
-			log.Println("User authenticated:", user)
+			log.Println("User authenticated:", user.Username)
 			isAuthenticated = true
 
 			go KeepWebUpdated(ws)
