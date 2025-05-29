@@ -330,16 +330,20 @@ entries:
 			})))
 		}
 
+		aborting := false
 		select {
 		case <-done:
 			log.Println("Audio playback complete")
 		case <-cancel:
-			log.Println("Disengaging PTT and aborting playlist playback")
-			ptt.DisengagePTT()
+			log.Println("Playlist aborting as requested")
+			aborting = true
+		}
+		speaker.Clear()
+		log.Println("PTT off")
+		ptt.DisengagePTT()
+		if aborting {
 			break entries
 		}
-		log.Println("PTT off since audio file has finished")
-		ptt.DisengagePTT()
 	}
 	log.Println("Playlist finished", playlist.Name)
 	statusCollector.PlaylistBeginIdle <- true
