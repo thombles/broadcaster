@@ -20,7 +20,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-const version = "v1.1.0"
+const version = "v1.2.0"
 
 //go:embed templates/*
 var content embed.FS
