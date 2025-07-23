@@ -140,10 +140,11 @@ Download the binary and install it at an appropriate location such as `/usr/loca
 * _(Optional but recommended)_ A directory to persist audio files that are downloaded.
 * _(Optional but recommended)_ PTT and COS functions connected to GPIO pins.
 
-```toml
 ## Radio configuration file
-These are the configuration options available for broadcaster-radio:
 
+These are the configuration options available for `broadcaster-radio`:
+
+```toml
 # Base URL of the broadcaster-server website (required)
 ServerURL = "https://my.site.com"
 
