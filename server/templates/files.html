@@ -10,10 +10,13 @@
         </tr>
       {{end}}
       </table>
-      <h2>Upload New File</h2>
-      <p>
-      <form action="/files/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Upload">
-      </form>
-      </p>
+      <h2>Upload Files</h2>
+      <div id="drop-zone" class="drop-zone">
+        Drag files here or click to browse
+        <input type="file" id="file-input" multiple style="display:none">
+      </div>
+      <table class="listing" border="1">
+        <tbody id="file-list"></tbody>
+      </table>
+      <input type="button" id="upload-btn" value="Upload All" style="display:none; margin-top: 0.5em;">
+      <script src="/static/upload.js"></script>

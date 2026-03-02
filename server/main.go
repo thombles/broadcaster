@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/fs"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -24,6 +26,9 @@ const version = "v1.2.0"
 
 //go:embed templates/*
 var content embed.FS
+
+//go:embed static/*
+var staticFiles embed.FS
 
 //var content = os.DirFS("../broadcaster-server/")
 
@@ -70,6 +75,7 @@ func main() {
 	}
 
 	log.Println("Broadcaster Server", version, "starting up")
+	mime.AddExtensionType(".js", "application/javascript")
 	InitCommandRouter()
 	InitPlaylists()
 	InitAudioFiles(config.AudioFilesPath)
@@ -79,6 +85,8 @@ func main() {
 
 	http.HandleFunc("/login", logInPage)
 	http.Handle("/file-downloads/", applyDisposition(http.StripPrefix("/file-downloads/", http.FileServer(http.Dir(config.AudioFilesPath)))))
+	staticSub, _ := fs.Sub(staticFiles, "static")
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSub))))
 
 	// Authenticated routes
 
@@ -691,16 +699,27 @@ func deleteFile(w http.ResponseWriter, r *http.Request) {
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseMultipartForm(100 << 20)
-	file, handler, err := r.FormFile("file")
-	if err == nil {
-		path := filepath.Join(files.Path(), filepath.Base(handler.Filename))
-		f, _ := os.Create(path)
-		defer f.Close()
-		io.Copy(f, file)
-		log.Println("Uploaded file to", path)
-		files.Refresh()
+	if err != nil {
+		http.Error(w, "Could not parse form", http.StatusBadRequest)
+		return
 	}
-	http.Redirect(w, r, "/files/", http.StatusFound)
+	file, handler, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "No file provided", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+	path := filepath.Join(files.Path(), filepath.Base(handler.Filename))
+	f, err := os.Create(path)
+	if err != nil {
+		http.Error(w, "Could not save file", http.StatusInternalServerError)
+		return
+	}
+	defer f.Close()
+	io.Copy(f, file)
+	log.Println("Uploaded file to", path)
+	files.Refresh()
+	w.WriteHeader(http.StatusOK)
 }
 
 func logOutPage(w http.ResponseWriter, r *http.Request, user User) {
